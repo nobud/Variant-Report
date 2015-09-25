@@ -161,6 +161,8 @@ namespace Variant_Report
                 html_report.Append("<table  cellpadding='5' cellspacing='5' style='border: 1px solid black; margin: 1em;'>");
                 foreach (string cfg_line in lines)
                 {
+                    if (string.IsNullOrWhiteSpace(cfg_line))
+                        continue;
                     if (cfg_line.Trim().StartsWith("#"))
                         continue;
                     //DETOX,CYP1A1*2C A4889G,rs1048943,C,notes
@@ -197,23 +199,31 @@ namespace Variant_Report
 
         private string getColoredRepresentation(char risk_allele, string your_allele)
         {
-            if (your_allele == "NO CALL")
+            if (your_allele == "NO CALL" || your_allele == "--")
                 return "<td style='font-family: Georgia, Times New Roman, serif;'>&nbsp;</td>";
             char allele1 = your_allele[0];
-            char allele2 = your_allele[1];
+
+            char allele2 = '\0';
+            if (your_allele.Length > 1) allele2 = your_allele[1];
+
             string result = "";
             if (risk_allele == allele1)
                 result = "+";
             else
                 result = "-";
             //
-            if (risk_allele == allele2)
-                result += "/+";
+
+            if (allele2 == '\0') result += "/NA";
             else
-                result += "/-";
+            {
+                if (risk_allele == allele2)
+                    result += "/+";
+                else
+                    result += "/-";
+            }
 
 
-            if(result=="+/+")
+            if (result == "+/+")
             {
                 result = "<td style='background-color: #FF0000;font-family: Georgia, Times New Roman, serif; text-align:center;'>" + result + "</td>";
             }
@@ -221,10 +231,12 @@ namespace Variant_Report
             {
                 result = "<td style='background-color: #00FF00;font-family: Georgia, Times New Roman, serif; text-align:center;'>" + result + "</td>";
             }
-            else
+            else if (result != "-/NA")
             {
                 result = "<td style='background-color: #FFFF00;font-family: Georgia, Times New Roman, serif; text-align:center;'>" + result + "</td>";
             }
+            else
+                result = "<td style='font-family: Georgia, Times New Roman, serif;'>" + result + "</td>";
             return result;
         }
 
